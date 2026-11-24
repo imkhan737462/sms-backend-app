@@ -30,11 +30,15 @@ jobs:
           java-version: '25'
           cache: maven
 
-      # 3. Build and test Spring Boot
-      - name: Build Application
+      # 3. Build and test Spring Boot application
+      - name: Build and Test Application
         run: mvn -B clean verify
+        env:
+          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
 
-      # 4. Trigger Render deployment
+      # 4. Trigger Render deployment (only after successful build)
       - name: Deploy to Render
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
@@ -47,4 +51,6 @@ jobs:
 
           curl --fail --show-error --silent \
             --request POST \
-            "${RENDER_DEPLOY_HOOK_URL}&ref=${GITHUB_SHA}"
+            "$RENDER_DEPLOY_HOOK_URL"
+
+          echo "Render deployment triggered successfully"
